@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Parent Control</string>
+    <string name="choose_insertion">Choose an insertion method:</string>
+    <string name="button_auto_insert">Automatically</string>
+    <string name="button_manual_insert">Manually</string>
+    <string name="choose_query">Choose a query method:</string>
+    <string name="button_query_time">By time</string>
+    <string name="auto_insert">Please choose an interval to insert the app usage data automatically:</string>
+    <string name="five_min">5 minutes</string>
+    <string name="one_hour">1 hour</string>
+    <string name="one_day">1 day</string>
+    <string name="stop_insert">Stop Insert</string>
+    <string name="manual_insert">Please choose the start date and end date to insert the app usage statictics:</string>
+    <string name="start_date">Start Date:</string>
+    <string name="end_date">End Date:</string>
+    <string name="confirm">Confirm</string>
+    <string name="query_by_time">Please enter the start date and end date to query the app usage statictics:</string>
+    <string name="start_time">Start Time:</string>
+    <string name="end_time">End Time:</string>
+</resources>

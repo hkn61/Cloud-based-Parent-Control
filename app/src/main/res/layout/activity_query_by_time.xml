@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".query_by_time">
+
+    <EditText
+        android:id="@+id/queryStartDate"
+        android:layout_width="126dp"
+        android:layout_height="51dp"
+        android:layout_marginStart="70dp"
+        android:layout_marginEnd="15dp"
+        android:clickable="true"
+        android:ems="10"
+        android:focusable="false"
+        android:onClick="chooseStartDate"
+        app:layout_constraintBaseline_toBaselineOf="@+id/queryStartTime"
+        app:layout_constraintEnd_toStartOf="@+id/queryStartTime"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/queryStartTime"
+        android:layout_width="78dp"
+        android:layout_height="51dp"
+        android:layout_marginEnd="122dp"
+        android:layout_marginBottom="52dp"
+        android:clickable="true"
+        android:ems="10"
+        android:focusable="false"
+        android:onClick="chooseStartTime"
+        app:layout_constraintBottom_toTopOf="@+id/endTime"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/queryStartDate"
+        app:layout_constraintTop_toBottomOf="@+id/startTime"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/queryEndTime"
+        android:layout_width="78dp"
+        android:layout_height="51dp"
+        android:layout_marginEnd="122dp"
+        android:layout_marginBottom="103dp"
+        android:clickable="true"
+        android:ems="10"
+        android:focusable="false"
+        android:onClick="chooseEndTime"
+        app:layout_constraintBottom_toTopOf="@+id/confirmButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/queryEndDate"
+        app:layout_constraintTop_toBottomOf="@+id/endTime"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/queryEndDate"
+        android:layout_width="126dp"
+        android:layout_height="51dp"
+        android:layout_marginStart="70dp"
+        android:layout_marginEnd="15dp"
+        android:clickable="true"
+        android:ems="10"
+        android:focusable="false"
+        android:onClick="chooseEndDate"
+        app:layout_constraintBaseline_toBaselineOf="@+id/queryEndTime"
+        app:layout_constraintEnd_toStartOf="@+id/queryEndTime"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/startTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="17dp"
+        android:text="@string/start_time"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/queryStartTime"
+        app:layout_constraintStart_toStartOf="@+id/queryInstruction"
+        app:layout_constraintTop_toBottomOf="@+id/queryInstruction"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/endTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_marginBottom="19dp"
+        android:text="@string/end_time"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/queryEndTime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/queryStartTime"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/confirmButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="219dp"
+        android:text="@string/confirm"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/queryEndTime"
+        app:layout_constraintTop_toBottomOf="@+id/queryEndTime"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/queryInstruction"
+        android:layout_width="315dp"
+        android:layout_height="95dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="48dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/query_by_time"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/startTime"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <ListView
+        android:visibility="gone"
+        android:id="@+id/apps_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
