@@ -16,6 +16,7 @@
         android:ems="10"
         android:focusable="false"
         android:onClick="chooseStartDate"
+        android:backgroundTint="#EFDEFF"
         app:layout_constraintBaseline_toBaselineOf="@+id/queryStartTime"
         app:layout_constraintEnd_toStartOf="@+id/queryStartTime"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,6 +32,7 @@
         android:ems="10"
         android:focusable="false"
         android:onClick="chooseStartTime"
+        android:backgroundTint="#EFDEFF"
         app:layout_constraintBottom_toTopOf="@+id/endTime"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/queryStartDate"
@@ -47,6 +49,7 @@
         android:ems="10"
         android:focusable="false"
         android:onClick="chooseEndTime"
+        android:backgroundTint="#EFDEFF"
         app:layout_constraintBottom_toTopOf="@+id/confirmButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/queryEndDate"
@@ -63,6 +66,7 @@
         android:ems="10"
         android:focusable="false"
         android:onClick="chooseEndDate"
+        android:backgroundTint="#EFDEFF"
         app:layout_constraintBaseline_toBaselineOf="@+id/queryEndTime"
         app:layout_constraintEnd_toStartOf="@+id/queryEndTime"
         app:layout_constraintStart_toStartOf="parent"
@@ -122,10 +126,28 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
 
-    <ListView
-        android:visibility="gone"
-        android:id="@+id/apps_list"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/usage_stat_header"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:padding="20dp"
+            android:text="Your Apps usage for last 72 hours:"
+            tools:ignore="MissingConstraints" />
+
+        <ListView
+            android:visibility="gone"
+            android:id="@+id/apps_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

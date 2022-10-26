@@ -17,9 +17,13 @@ import android.os.StrictMode;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -39,6 +43,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        startService(new Intent(this, KeepRunning.class));
+
+        // keep running when phone is locked
+        Window window = this.getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
         current_android_id = getDeviceId((context));
@@ -141,9 +153,9 @@ public class MainActivity extends AppCompatActivity {
         long useTime = 0;
         long duration = 0;
         ArrayList<Integer> result = new ArrayList<>();
-        final long INTERVAL = 1000 * 0;
-        final long end = System.currentTimeMillis();
-        final long begin = end - INTERVAL;
+        final long INTERVAL = 1000 * 60 * 60 * 72 *0;
+        final long end = System.currentTimeMillis() - 1000 * 60 * 60 * 72;
+        final long begin = end - INTERVAL - 1000 * 60 * 60 * 71;
         final UsageEvents usageEvents = usageStatsManager.queryEvents(begin, end);
         Log.d("here", String.valueOf(usageEvents));
         while (usageEvents.hasNextEvent()) {
@@ -222,6 +234,11 @@ public class MainActivity extends AppCompatActivity {
         OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
         writer.write(param.toString());
         writer.flush();
+
+        //The server isn't waiting for any data from the client, and when the server exits the connection will be closed. So add a ins.readLine() to the server code:
+        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        System.out.println(in.readLine());
+
         writer.close();
 
         return conn.getResponseCode();

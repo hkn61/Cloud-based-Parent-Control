@@ -50,6 +50,7 @@ public class query_by_time extends AppCompatActivity {
     public static Context context;
     public static String current_android_id;
     EditText startDate, startTime, endDate, endTime;
+    TextView usageStatHeader;
     Button confirmButton;
     public int sYear = -1, sMonth = -1, sDay = -1, sHour = -1, sMinute = -1, eYear = -1, eMonth = -1, eDay = -1, eHour = -1, eMinute = -1;
 
@@ -66,6 +67,7 @@ public class query_by_time extends AppCompatActivity {
         startTime = (EditText) findViewById(R.id.queryStartTime);
         endDate = (EditText) findViewById(R.id.queryEndDate);
         endTime = (EditText) findViewById(R.id.queryEndTime);
+        usageStatHeader = findViewById(R.id.usage_stat_header);
 
 //        this.loadStatistics();
     }
@@ -181,8 +183,12 @@ public class query_by_time extends AppCompatActivity {
         if(sYear != -1 && sMonth != -1 && sDay != -1 && sHour != -1 && sMinute != -1 && eYear != -1 && eMonth != -1 && eDay != -1 && eHour != -1 && eMinute != -1){
             startTimeInput = Integer.toString(sYear) + "-" + Integer.toString(sMonth) + "-" + Integer.toString(sDay) + "T" + Integer.toString(sHour) + ":" + Integer.toString(sMinute) + ":00";
             endTimeInput = Integer.toString(eYear) + "-" + Integer.toString(eMonth) + "-" + Integer.toString(eDay) + "T" + Integer.toString(eHour) + ":" + Integer.toString(eMinute) + ":00";
+            String startTimeDisplay = Integer.toString(sYear) + "-" + Integer.toString(sMonth) + "-" + Integer.toString(sDay) + " " + String.format("%02d", sHour) + ":" + String.format("%02d", sMinute);
+            String endTimeDisplay = Integer.toString(eYear) + "-" + Integer.toString(eMonth) + "-" + Integer.toString(eDay) + " " + String.format("%02d", eHour) + ":" + String.format("%02d", eMinute);
+            usageStatHeader.setText("Your Apps usage from " + startTimeDisplay + " to " + endTimeDisplay);
         }
         else{
+            usageStatHeader.setText("Your Apps usage for last 72 hours:");
             loadStatistics();
             return "";
         }
@@ -242,7 +248,7 @@ public class query_by_time extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void loadStatistics() {
         UsageStatsManager usm = (UsageStatsManager) this.getSystemService(USAGE_STATS_SERVICE);
-        List<UsageStats> appList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  System.currentTimeMillis() - 1000*3600*24,  System.currentTimeMillis());
+        List<UsageStats> appList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 1,  System.currentTimeMillis());
         appList = appList.stream().filter(app -> app.getTotalTimeInForeground() > 0).collect(Collectors.toList());
 
         // Group the usageStats by application and sort them by total time in foreground
@@ -289,17 +295,18 @@ public class query_by_time extends AppCompatActivity {
 //                appName = getApplicationContext().getPackageManager().getApplicationLabel(ai).toString();
                 int duration = object.getInt("total_duration");
 
-                String usageDuration = Integer.toString(duration) + "ms";
+//                String usageDuration = Integer.toString(duration) + "ms";
+                String usageDuration = getDurationBreakdown(duration);
                 int usagePercentage = (int) (duration * 100 / totalTime);
 
-                App usageStatDTO = new App(icon, appName, usagePercentage, usageDuration);
+                App usageStatDTO = new App(icon, appName, usagePercentage, duration, usageDuration);
                 appsList.add(usageStatDTO);
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
         }
 
-        Collections.sort(appsList, Comparator.comparingLong(z -> z.usagePercentage));
+        Collections.sort(appsList, Comparator.comparingLong(z -> z.durationInt));
         // reverse the list to get most usage first
         Collections.reverse(appsList);
         // build the adapter
@@ -343,7 +350,7 @@ public class query_by_time extends AppCompatActivity {
                 String usageDuration = getDurationBreakdown(usageStats.getTotalTimeInForeground());
                 int usagePercentage = (int) (usageStats.getTotalTimeInForeground() * 100 / totalTime);
 
-                App usageStatDTO = new App(icon, appName, usagePercentage, usageDuration);
+                App usageStatDTO = new App(icon, appName, usagePercentage, (int)usageStats.getTotalTimeInForeground(), usageDuration);
                 appsList.add(usageStatDTO);
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
@@ -396,6 +403,7 @@ public class query_by_time extends AppCompatActivity {
         endTime.setVisibility(View.GONE);
         queryInstruction.setVisibility(View.GONE);
         confirmButton.setVisibility(View.GONE);
+        usageStatHeader.setVisibility(View.VISIBLE);
         appsList.setVisibility(View.VISIBLE);
 
     }
