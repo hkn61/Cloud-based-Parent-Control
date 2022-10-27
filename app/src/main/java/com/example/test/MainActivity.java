@@ -3,7 +3,9 @@ package com.example.test;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ActivityManager;
+import android.app.AlarmManager;
 import android.app.AppOpsManager;
+import android.app.PendingIntent;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
@@ -13,7 +15,10 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -35,10 +40,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     public static Context context;
     public static String current_android_id;
+    private Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,12 +83,41 @@ public class MainActivity extends AppCompatActivity {
             StrictMode.setThreadPolicy(policy);
         }
 
-        try {
-            insertUsageStats(usageStatsManager);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+
+//        // (2) 使用handler处理接收到的消息
+//        Handler mHandler = new Handler(){
+//            @Override
+//            public void handleMessage(Message msg) {
+//                if(msg.what == 0){
+//                    try {
+//                        insertUsageStats(usageStatsManager);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        };
+//
+//        timer=new Timer();
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                // (1) 使用handler发送消息
+//                Message message=new Message();
+//                message.what=0;
+//                mHandler.sendMessage(message);
+//            }
+//        },0,1000 * 5);//每隔一秒使用handler发送一下消息,也就是每隔一秒执行一次,一直重复执行
+//
+
+//        try {
+//            insertUsageStats(usageStatsManager);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
+
 
     public static String getDeviceId(Context context) {
         String id = Settings.Secure.getString(context.getContentResolver(),
@@ -154,8 +190,8 @@ public class MainActivity extends AppCompatActivity {
         long duration = 0;
         ArrayList<Integer> result = new ArrayList<>();
         final long INTERVAL = 1000 * 60 * 60 * 72 *0;
-        final long end = System.currentTimeMillis() - 1000 * 60 * 60 * 72;
-        final long begin = end - INTERVAL - 1000 * 60 * 60 * 71;
+        final long end = System.currentTimeMillis();
+        final long begin = end - INTERVAL;
         final UsageEvents usageEvents = usageStatsManager.queryEvents(begin, end);
         Log.d("here", String.valueOf(usageEvents));
         while (usageEvents.hasNextEvent()) {
