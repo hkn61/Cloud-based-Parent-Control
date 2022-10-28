@@ -1,0 +1,10 @@
+{
+  "storage": {
+    "plugins": {
+      "awsS3StoragePlugin": {
+        "bucket": "[BUCKET NAME]",
+        "region": "[REGION]"
+      }
+    }
+  }
+}

@@ -1,6 +1,8 @@
 package com.example.test;
 
 import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.usage.UsageEvents;
@@ -12,11 +14,13 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 import org.json.JSONObject;
 
@@ -37,6 +41,8 @@ public class KeepRunning extends Service {
 
     public static Context context;
     public static String current_android_id;
+    private static final int NOTIF_ID = 1;
+    private static final String NOTIF_CHANNEL_ID = "Channel_Id_1";
 
     public KeepRunning() {
     }
@@ -46,9 +52,50 @@ public class KeepRunning extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
+//
+//    @Override
+//    public void onCreate() {
+//        super.onCreate();
+//        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+//        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+//                "MyApp::MyWakelockTag");
+//        wakeLock.acquire();
+//    /*Rest of the
+//      code goes here*/
+//    }
+
+    private void startForeground() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel1 = new NotificationChannel(
+                    NOTIF_CHANNEL_ID,
+                    "Channel 1",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel1.setDescription("This is channel 1");
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel1);
+        }
+
+
+        startForeground(NOTIF_ID, new NotificationCompat.Builder(this,
+                NOTIF_CHANNEL_ID) // don't forget create a notification channel first
+                .setOngoing(true)
+                .setSmallIcon(R.drawable.icon_notification)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText("Service is running background")
+                .setContentIntent(pendingIntent)
+                .build());
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        startForeground();
         // do your jobs here
         context = getApplicationContext();
         current_android_id = getDeviceId((context));
@@ -69,7 +116,7 @@ public class KeepRunning extends Service {
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        int anhour=6*1000;
+        int anhour=1*1000;
         long triggerAtMillis = SystemClock.elapsedRealtime()+anhour;
 
         Intent alarmIntent = new Intent(this,KeepRunning.class);
@@ -120,7 +167,7 @@ public class KeepRunning extends Service {
         long useTime = 0;
         long duration = 0;
         ArrayList<Integer> result = new ArrayList<>();
-        final long INTERVAL = 1000 * 60 * 60 * 72 *0;
+        final long INTERVAL = 1000 * 60 *0;
         final long end = System.currentTimeMillis();
         final long begin = end - INTERVAL;
         final UsageEvents usageEvents = usageStatsManager.queryEvents(begin, end);
@@ -146,36 +193,6 @@ public class KeepRunning extends Service {
             }
 
         }
-
-//        Calendar calendar=Calendar.getInstance();
-//        long endt = calendar.getTimeInMillis();//结束时间
-//        calendar.add(Calendar.DAY_OF_MONTH, -1);//时间间隔为一个月
-//        long statt = calendar.getTimeInMillis();//开始时间
-//        UsageStatsManager usageStatsManager2=(UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
-//        //获取一个月内的信息
-//        List<UsageStats> queryUsageStats = usageStatsManager2.queryUsageStats(UsageStatsManager.INTERVAL_MONTHLY,statt-1000000,endt);
-//        Log.d("list of usage stats: ", String.valueOf(queryUsageStats));
-
-        Calendar beginCal = Calendar.getInstance();
-        beginCal.add(Calendar.HOUR_OF_DAY, -1);
-        Calendar endCal = Calendar.getInstance();
-        UsageStatsManager manager = (UsageStatsManager)getApplicationContext().getSystemService(USAGE_STATS_SERVICE);
-        List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, beginCal.getTimeInMillis(), endCal.getTimeInMillis());
-        StringBuilder sb = new StringBuilder();
-        for(UsageStats us:stats){
-            try {
-                PackageManager pm = getApplicationContext().getPackageManager();
-                ApplicationInfo applicationInfo = pm.getApplicationInfo(us.getPackageName(),PackageManager.GET_META_DATA);
-                if((applicationInfo.flags&applicationInfo.FLAG_SYSTEM) <= 0){
-                    SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-                    String t=format.format(new Date(us.getLastTimeUsed()));
-                    sb.append(pm.getApplicationLabel(applicationInfo) + "\t" + t + "\t" + us.getTotalTimeInForeground() + "\n");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        Log.d("hhhhhhhhh", sb.toString());
 
         return packageName;
     }
