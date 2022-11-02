@@ -38,7 +38,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -51,23 +53,30 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CSVInput;
-import com.amazonaws.services.s3.model.CSVOutput;
-import com.amazonaws.services.s3.model.CompressionType;
-import com.amazonaws.services.s3.model.ExpressionType;
-import com.amazonaws.services.s3.model.InputSerialization;
-import com.amazonaws.services.s3.model.OutputSerialization;
-import com.amazonaws.services.s3.model.SelectObjectContentEvent;
-import com.amazonaws.services.s3.model.SelectObjectContentEventVisitor;
-import com.amazonaws.services.s3.model.SelectObjectContentRequest;
-import com.amazonaws.services.s3.model.SelectObjectContentResult;
-import static com.amazonaws.util.IOUtils.copy;
+
+//import com.amazonaws.auth.AWSCredentials;
+//import com.amazonaws.auth.AWSStaticCredentialsProvider;
+//import com.amazonaws.auth.BasicAWSCredentials;
+//import com.amazonaws.regions.Regions;
+//import com.amazonaws.services.s3.AmazonS3;
+//import com.amazonaws.services.s3.AmazonS3Client;
+//import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+//import com.amazonaws.services.s3.model.CSVInput;
+//import com.amazonaws.services.s3.model.CSVOutput;
+//import com.amazonaws.services.s3.model.CompressionType;
+//import com.amazonaws.services.s3.model.ExpressionType;
+//import com.amazonaws.services.s3.model.InputSerialization;
+//import com.amazonaws.services.s3.model.OutputSerialization;
+//import com.amazonaws.services.s3.model.SelectObjectContentEvent;
+//import com.amazonaws.services.s3.model.SelectObjectContentEventVisitor;
+//import com.amazonaws.services.s3.model.SelectObjectContentRequest;
+//import com.amazonaws.services.s3.model.SelectObjectContentResult;
+//import static com.amazonaws.util.IOUtils.copy;
 
 public class query_by_time extends AppCompatActivity {
     public static Context context;
     public static String current_android_id;
+    String startTimeDisplay, endTimeDisplay;
     EditText startDate, startTime, endDate, endTime;
     TextView usageStatHeader;
     Button confirmButton;
@@ -89,6 +98,12 @@ public class query_by_time extends AppCompatActivity {
         usageStatHeader = findViewById(R.id.usage_stat_header);
 
 //        this.loadStatistics();
+        try {
+//            s3Test();
+            query_s3();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -202,12 +217,12 @@ public class query_by_time extends AppCompatActivity {
         if(sYear != -1 && sMonth != -1 && sDay != -1 && sHour != -1 && sMinute != -1 && eYear != -1 && eMonth != -1 && eDay != -1 && eHour != -1 && eMinute != -1){
             startTimeInput = Integer.toString(sYear) + "-" + Integer.toString(sMonth) + "-" + Integer.toString(sDay) + "T" + Integer.toString(sHour) + ":" + Integer.toString(sMinute) + ":00";
             endTimeInput = Integer.toString(eYear) + "-" + Integer.toString(eMonth) + "-" + Integer.toString(eDay) + "T" + Integer.toString(eHour) + ":" + Integer.toString(eMinute) + ":00";
-            String startTimeDisplay = Integer.toString(sYear) + "-" + Integer.toString(sMonth) + "-" + Integer.toString(sDay) + " " + String.format("%02d", sHour) + ":" + String.format("%02d", sMinute);
-            String endTimeDisplay = Integer.toString(eYear) + "-" + Integer.toString(eMonth) + "-" + Integer.toString(eDay) + " " + String.format("%02d", eHour) + ":" + String.format("%02d", eMinute);
+            startTimeDisplay = Integer.toString(sYear) + "-" + Integer.toString(sMonth) + "-" + Integer.toString(sDay) + " " + String.format("%02d", sHour) + ":" + String.format("%02d", sMinute);
+            endTimeDisplay = Integer.toString(eYear) + "-" + Integer.toString(eMonth) + "-" + Integer.toString(eDay) + " " + String.format("%02d", eHour) + ":" + String.format("%02d", eMinute);
             usageStatHeader.setText("Your Apps usage from " + startTimeDisplay + " to " + endTimeDisplay);
         }
         else{
-            usageStatHeader.setText("Your Apps usage for last 72 hours:");
+            usageStatHeader.setText("Your Apps usage for last 24 hours:");
             loadStatistics();
             return "";
         }
@@ -247,6 +262,7 @@ public class query_by_time extends AppCompatActivity {
 
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
+            Log.d("ec2 input line", inputLine);
         }
         in.close();
 
@@ -427,79 +443,149 @@ public class query_by_time extends AppCompatActivity {
 
     }
 
-    private static final String BUCKET_NAME = "${my-s3-bucket}";
-    private static final String CSV_OBJECT_KEY = "${my-csv-object-key}";
-    private static final String S3_SELECT_RESULTS_PATH = "${my-s3-select-results-path}";
-    private static final String QUERY = "select s._1 from S3Object s";
+//    private static final String BUCKET_NAME = "fyp-time-series-data";
+//    private static final String CSV_OBJECT_KEY = "test_chunk_1.csv";
+//    private static final String S3_SELECT_RESULTS_PATH = "/Users/huangkaining/Desktop/22-23 sem1/ESTR4998/s3.csv";
+//    private static final String QUERY = "select s._1 from S3Object s";
 
 
     // s3
-    public void s3Test() throws Exception {
-        AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
+//    public void s3Test() throws Exception {
+//        AWSCredentials credentials = new BasicAWSCredentials(
+//                "AKIAQ5HCDRDTFKG2RVYM",
+//                "BuuzdfRwUKTE8sH3WOljg5SLGVr0HN+FRjwLmadG"
+//        );
+//
+//        AmazonS3 s3Client = new AmazonS3Client(credentials);
+////                .standard()
+////                .withCredentials(new AWSStaticCredentialsProvider(credentials))
+////                .withRegion(Regions.US_WEST_2)
+////                .build();
+//
+//        SelectObjectContentRequest request = generateBaseCSVRequest(BUCKET_NAME, CSV_OBJECT_KEY, QUERY);
+//        AtomicBoolean isResultComplete = new AtomicBoolean(false);
+//
+//        try (OutputStream fileOutputStream = new FileOutputStream(new File(S3_SELECT_RESULTS_PATH));
+//             SelectObjectContentResult result = s3Client.selectObjectContent(request)) {
+//            InputStream resultInputStream = result.getPayload().getRecordsInputStream(
+//                    new SelectObjectContentEventVisitor() {
+//                        @Override
+//                        public void visit(SelectObjectContentEvent.StatsEvent event)
+//                        {
+//                            System.out.println(
+//                                    "Received Stats, Bytes Scanned: " + event.getDetails().getBytesScanned()
+//                                            +  " Bytes Processed: " + event.getDetails().getBytesProcessed());
+//                        }
+//
+//                        /*
+//                         * An End Event informs that the request has finished successfully.
+//                         */
+//                        @Override
+//                        public void visit(SelectObjectContentEvent.EndEvent event)
+//                        {
+//                            isResultComplete.set(true);
+//                            System.out.println("Received End Event. Result is complete.");
+//                        }
+//                    }
+//            );
+//
+//            copy(resultInputStream, fileOutputStream);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        /*
+//         * The End Event indicates all matching records have been transmitted.
+//         * If the End Event is not received, the results may be incomplete.
+//         */
+//        if (!isResultComplete.get()) {
+//            throw new Exception("S3 Select request was incomplete as End Event was not received.");
+//        }
+//
+//    }
+//
+//
+//    private SelectObjectContentRequest generateBaseCSVRequest(String bucket, String key, String query) {
+//        SelectObjectContentRequest request = new SelectObjectContentRequest();
+//        request.setBucketName(bucket);
+//        request.setKey(key);
+//        request.setExpression(query);
+//        request.setExpressionType(ExpressionType.SQL);
+//
+//        InputSerialization inputSerialization = new InputSerialization();
+//        inputSerialization.setCsv(new CSVInput());
+//        inputSerialization.setCompressionType(CompressionType.NONE);
+//        request.setInputSerialization(inputSerialization);
+//
+//        OutputSerialization outputSerialization = new OutputSerialization();
+//        outputSerialization.setCsv(new CSVOutput());
+//        request.setOutputSerialization(outputSerialization);
+//
+//        return request;
+//    }
 
-        SelectObjectContentRequest request = generateBaseCSVRequest(BUCKET_NAME, CSV_OBJECT_KEY, QUERY);
-        AtomicBoolean isResultComplete = new AtomicBoolean(false);
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void query_s3() throws Exception {
+        String startTimeInput, endTimeInput;
+        startTimeInput = Integer.toString(sYear) + "-" + Integer.toString(sMonth) + "-" + Integer.toString(sDay) + " " + Integer.toString(sHour) + ":" + Integer.toString(sMinute) + ":00";
+        endTimeInput = Integer.toString(eYear) + "-" + Integer.toString(eMonth) + "-" + Integer.toString(eDay) + " " + Integer.toString(eHour) + ":" + Integer.toString(eMinute) + ":00";
+//        usageStatHeader.setText("Your Apps usage from " + startTimeDisplay + " to " + endTimeDisplay);
+        URL url = new URL("http://34.216.172.247/s3_query");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setUseCaches(false);
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        JSONObject param = new JSONObject();
+//        param.put("device_id", current_android_id);
+//        param.put("start_time", startTimeInput);
+//        param.put("end_time", endTimeInput);
+        startTimeInput = "2022-09-29 11:54:02";
+        endTimeInput = "2022-11-29 11:54:02";
+        String sql = "Select * from S3Object s WHERE s._1 >= '" + startTimeInput + "' AND s._1 < '" + endTimeInput + "' AND s._2 = '" + current_android_id + "'";
+        Log.d("s3 sql", sql);
+        param.put("sql", sql);
 
-        try (OutputStream fileOutputStream = new FileOutputStream(new File(S3_SELECT_RESULTS_PATH));
-             SelectObjectContentResult result = s3Client.selectObjectContent(request)) {
-            InputStream resultInputStream = result.getPayload().getRecordsInputStream(
-                    new SelectObjectContentEventVisitor() {
-                        @Override
-                        public void visit(SelectObjectContentEvent.StatsEvent event)
-                        {
-                            System.out.println(
-                                    "Received Stats, Bytes Scanned: " + event.getDetails().getBytesScanned()
-                                            +  " Bytes Processed: " + event.getDetails().getBytesProcessed());
-                        }
+        Log.d("req body", param.toString());
 
-                        /*
-                         * An End Event informs that the request has finished successfully.
-                         */
-                        @Override
-                        public void visit(SelectObjectContentEvent.EndEvent event)
-                        {
-                            isResultComplete.set(true);
-                            System.out.println("Received End Event. Result is complete.");
-                        }
-                    }
-            );
-
-            copy(resultInputStream, fileOutputStream);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        conn.connect();
+        OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
+        writer.write(param.toString());
+        writer.flush();
+        writer.close();
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Fail to request url! ResponseCode: " + conn.getResponseCode());
         }
 
-        /*
-         * The End Event indicates all matching records have been transmitted.
-         * If the End Event is not received, the results may be incomplete.
-         */
-        if (!isResultComplete.get()) {
-            throw new Exception("S3 Select request was incomplete as End Event was not received.");
+//        InputStream inStream = conn.getInputStream();
+////        String jsonStr = IOUtils.toString(inStream, "UTF-8");
+//        String jsonStr = convertStreamToString(inStream);
+//        inStream.close();
+//        Log.d("query result", jsonStr);
+//        return jsonStr;
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                conn.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+            Log.d("fastapi input line", inputLine);
         }
+        in.close();
 
+        // print result
+//        System.out.println(response.toString());
+        Log.d("fastapi query response", response.toString());
+        showAppsUsageReport(response.toString());
     }
-
-
-    private SelectObjectContentRequest generateBaseCSVRequest(String bucket, String key, String query) {
-        SelectObjectContentRequest request = new SelectObjectContentRequest();
-        request.setBucketName(bucket);
-        request.setKey(key);
-        request.setExpression(query);
-        request.setExpressionType(ExpressionType.SQL);
-
-        InputSerialization inputSerialization = new InputSerialization();
-        inputSerialization.setCsv(new CSVInput());
-        inputSerialization.setCompressionType(CompressionType.NONE);
-        request.setInputSerialization(inputSerialization);
-
-        OutputSerialization outputSerialization = new OutputSerialization();
-        outputSerialization.setCsv(new CSVOutput());
-        request.setOutputSerialization(outputSerialization);
-
-        return request;
-    }
-
 
 }
+
+
+
+//D/query response: [{"package_name":"com.android.browser","app_name":"Browser","total_duration":3650},  {"package_name":"com.xingin.xhs","app_name":"小红书","total_duration":1549172},  {"package_name":"com.tencent.mm","app_name":"WeChat","total_duration":1284587},  {"package_name":"com.huawei.search","app_name":"AI Search","total_duration":483},  {"package_name":"com.huawei.android.launcher","app_name":"Huawei Home","total_duration":543810},  {"package_name":"com.android.packageinstaller","app_name":"Package Installer","total_duration":2735},  {"package_name":"com.example.test","app_name":"Parent Control","total_duration":359516},  {"package_name":"com.huawei.appmarket","app_name":"AppGallery","total_duration":53480},  {"package_name":"com.android.settings","app_name":"Settings","total_duration":3588},  {"package_name":"com.carsonwah.cubus","app_name":"CU Bus","total_duration":2316},  {"package_name":"com.android.deskclock","app_name":"Clock","total_duration":25695},  {"package_name":"hk.alipay.wallet","app_name":"AlipayHK","total_duration":86890}]
+//        D/fastapi query response: ["2022-09-29 11:54:36,f5f33e3b42bc7b7d,com.huawei.android.launcher,Huawei Home,787\n2022-09-29 11:54:38,f5f33e3b42bc7b7d,com.tencent.mm,WeChat,18\n2022-09-29 11:54:42,f5f33e3b42bc7b7d,com.carsonwah.cubus,CU Bus,17\n2022-09-29 12:00:09,f5f33e3b42bc7b7d,com.huawei.android.launcher,Huawei Home,20241\n2022-09-29 12:01:52,f5f33e3b42bc7b7d,com.huawei.android.launcher,Huawei Home,1203\n2022-09-29 12:01:55,f5f33e3b42bc7b7d,com.tencent.mm,WeChat,13\n2022-09-29 12:01:56,f5f33e3b42bc7b7d,com.huawei.android.launcher,Huawei Home,9050\n2022-09-29 12:02:06,f5f33e3b42bc7b7d,com.microsoft.office.outlook,Outlook,34\n"]

@@ -139,7 +139,7 @@
             android:layout_height="wrap_content"
             android:textAlignment="center"
             android:padding="20dp"
-            android:text="Your Apps usage for last 72 hours:"
+            android:text="Your Apps usage for last 24 hours:"
             tools:ignore="MissingConstraints" />
 
         <ListView

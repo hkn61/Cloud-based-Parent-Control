@@ -27,11 +27,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/io.netty.versions.properties'
-        exclude 'META-INF/INDEX.LIST'
-    }
+//    packagingOptions {
+//        exclude 'META-INF/DEPENDENCIES'
+//        exclude 'META-INF/io.netty.versions.properties'
+//        exclude 'META-INF/INDEX.LIST'
+//    }
 }
 
 dependencies {
@@ -45,13 +45,15 @@ dependencies {
 //    implementation "com.amazonaws:aws-android-sdk-core:2.11.1"
 //    implementation "com.amazonaws:aws-android-sdk-s3:2.11.1"
 //    implementation "com.amazonaws:aws-android-sdk:2.50.0"
-    implementation "com.amazonaws:aws-java-sdk:1.11.708"
-    implementation "com.amazonaws:aws-java-sdk-s3:1.11.708"
+
+//    implementation "com.amazonaws:aws-java-sdk:1.11.708"
+//    implementation "com.amazonaws:aws-java-sdk-s3:1.11.708"
+
 //    implementation 'com.amplifyframework:aws-datastore:1.37.5'
 //    implementation('com.amazonaws:aws-android-sdk-mobile-client:2.16.31') { transitive = true }
 //    implementation 'com.amazonaws:aws-android-sdk-cognito:2.6.17'
     // Support for Java 8 features
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+//    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 //
 //    implementation 'com.amplifyframework:aws-api:1.37.5'
 //    implementation 'com.amplifyframework:aws-datastore:1.37.5'
