@@ -443,88 +443,6 @@ public class query_by_time extends AppCompatActivity {
 
     }
 
-//    private static final String BUCKET_NAME = "fyp-time-series-data";
-//    private static final String CSV_OBJECT_KEY = "test_chunk_1.csv";
-//    private static final String S3_SELECT_RESULTS_PATH = "/Users/huangkaining/Desktop/22-23 sem1/ESTR4998/s3.csv";
-//    private static final String QUERY = "select s._1 from S3Object s";
-
-
-    // s3
-//    public void s3Test() throws Exception {
-//        AWSCredentials credentials = new BasicAWSCredentials(
-//                "AKIAQ5HCDRDTFKG2RVYM",
-//                "BuuzdfRwUKTE8sH3WOljg5SLGVr0HN+FRjwLmadG"
-//        );
-//
-//        AmazonS3 s3Client = new AmazonS3Client(credentials);
-////                .standard()
-////                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-////                .withRegion(Regions.US_WEST_2)
-////                .build();
-//
-//        SelectObjectContentRequest request = generateBaseCSVRequest(BUCKET_NAME, CSV_OBJECT_KEY, QUERY);
-//        AtomicBoolean isResultComplete = new AtomicBoolean(false);
-//
-//        try (OutputStream fileOutputStream = new FileOutputStream(new File(S3_SELECT_RESULTS_PATH));
-//             SelectObjectContentResult result = s3Client.selectObjectContent(request)) {
-//            InputStream resultInputStream = result.getPayload().getRecordsInputStream(
-//                    new SelectObjectContentEventVisitor() {
-//                        @Override
-//                        public void visit(SelectObjectContentEvent.StatsEvent event)
-//                        {
-//                            System.out.println(
-//                                    "Received Stats, Bytes Scanned: " + event.getDetails().getBytesScanned()
-//                                            +  " Bytes Processed: " + event.getDetails().getBytesProcessed());
-//                        }
-//
-//                        /*
-//                         * An End Event informs that the request has finished successfully.
-//                         */
-//                        @Override
-//                        public void visit(SelectObjectContentEvent.EndEvent event)
-//                        {
-//                            isResultComplete.set(true);
-//                            System.out.println("Received End Event. Result is complete.");
-//                        }
-//                    }
-//            );
-//
-//            copy(resultInputStream, fileOutputStream);
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        /*
-//         * The End Event indicates all matching records have been transmitted.
-//         * If the End Event is not received, the results may be incomplete.
-//         */
-//        if (!isResultComplete.get()) {
-//            throw new Exception("S3 Select request was incomplete as End Event was not received.");
-//        }
-//
-//    }
-//
-//
-//    private SelectObjectContentRequest generateBaseCSVRequest(String bucket, String key, String query) {
-//        SelectObjectContentRequest request = new SelectObjectContentRequest();
-//        request.setBucketName(bucket);
-//        request.setKey(key);
-//        request.setExpression(query);
-//        request.setExpressionType(ExpressionType.SQL);
-//
-//        InputSerialization inputSerialization = new InputSerialization();
-//        inputSerialization.setCsv(new CSVInput());
-//        inputSerialization.setCompressionType(CompressionType.NONE);
-//        request.setInputSerialization(inputSerialization);
-//
-//        OutputSerialization outputSerialization = new OutputSerialization();
-//        outputSerialization.setCsv(new CSVOutput());
-//        request.setOutputSerialization(outputSerialization);
-//
-//        return request;
-//    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void query_s3() throws Exception {
@@ -544,8 +462,10 @@ public class query_by_time extends AppCompatActivity {
 //        param.put("end_time", endTimeInput);
         startTimeInput = "2022-09-29 11:54:02";
         endTimeInput = "2022-11-29 11:54:02";
+        String key = "test_chunk_2.csv";
         String sql = "Select * from S3Object s WHERE s._1 >= '" + startTimeInput + "' AND s._1 < '" + endTimeInput + "' AND s._2 = '" + current_android_id + "'";
         Log.d("s3 sql", sql);
+        param.put("key", key);
         param.put("sql", sql);
 
         Log.d("req body", param.toString());

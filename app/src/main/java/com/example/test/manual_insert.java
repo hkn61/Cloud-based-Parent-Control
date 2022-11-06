@@ -1,6 +1,7 @@
 package com.example.test;
 
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TimePicker;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,8 +36,8 @@ import java.util.Date;
 import java.util.List;
 
 public class manual_insert extends AppCompatActivity {
-    EditText startDate, endDate;
-    public int sYear = -1, sMonth = -1, sDay = -1, eYear = -1, eMonth = -1, eDay = -1;
+    EditText startDate, startTime, endDate, endTime;
+    public int sYear = -1, sMonth = -1, sDay = -1, sHour = -1, sMinute = -1, eYear = -1, eMonth = -1, eDay = -1, eHour = -1, eMinute = -1;
     Button confirmInsert;
     public static Context context;
     public static String current_android_id;
@@ -45,8 +47,10 @@ public class manual_insert extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manual_insert);
 
-        startDate = (EditText)findViewById(R.id.startDate);
-        endDate = (EditText)findViewById(R.id.endDate);
+        startDate = (EditText) findViewById(R.id.insertStartDate);
+        startTime = (EditText) findViewById(R.id.insertStartTime);
+        endDate = (EditText) findViewById(R.id.insertEndDate);
+        endTime = (EditText) findViewById(R.id.insertEndTime);
 
         confirmInsert = findViewById(R.id.confirmInsert);
         context = getApplicationContext();
@@ -89,6 +93,29 @@ public class manual_insert extends AppCompatActivity {
         datePickerDialog.show();
     }
 
+    public void chooseStartTime(View v) {
+        // Get Current Time
+        final Calendar c = Calendar.getInstance();
+        sHour = c.get(Calendar.HOUR_OF_DAY);
+        sMinute = c.get(Calendar.MINUTE);
+
+        // Launch Time Picker Dialog
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                String hour = String.format("%02d", hourOfDay);
+                String min = String.format("%02d", minute);
+                startTime.setText(hour + ":" + min);
+                sHour = hourOfDay;
+                sMinute = minute;
+            }
+        }, sHour, sMinute, false);
+        timePickerDialog.show();
+
+        Log.d("start hour", Integer.toString(sHour));
+        Log.d("start min", Integer.toString(sMinute));
+    }
+
     public void chooseEndDate(View v) {
         // Get Current Date
         final Calendar c = Calendar.getInstance();
@@ -107,6 +134,26 @@ public class manual_insert extends AppCompatActivity {
             }, eYear, eMonth, eDay);
 
         datePickerDialog.show();
+    }
+
+    public void chooseEndTime(View v) {
+        // Get Current Time
+        final Calendar c = Calendar.getInstance();
+        eHour = c.get(Calendar.HOUR_OF_DAY);
+        eMinute = c.get(Calendar.MINUTE);
+
+        // Launch Time Picker Dialog
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                String hour = String.format("%02d", hourOfDay);
+                String min = String.format("%02d", minute);
+                endTime.setText(hour + ":" + min);
+                eHour = hourOfDay;
+                eMinute = minute;
+            }
+        }, eHour, eMinute, false);
+        timePickerDialog.show();
     }
 
     public static String getDeviceId(Context context) {
@@ -136,7 +183,8 @@ public class manual_insert extends AppCompatActivity {
     }
 
     public long beginDateToMillis() throws ParseException {
-        String beginDate = Integer.toString(sYear) + "/" + Integer.toString(sMonth) + "/" + Integer.toString(sDay) + " 00:00:00";
+//        String beginDate = Integer.toString(sYear) + "/" + Integer.toString(sMonth) + "/" + Integer.toString(sDay) + " 00:00:00";
+        String beginDate = Integer.toString(sYear) + "/" + Integer.toString(sMonth) + "/" + Integer.toString(sDay) + " " + Integer.toString(sHour) + ":" + Integer.toString(sMinute) + ":00";
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date = sdf.parse(beginDate);
@@ -146,7 +194,8 @@ public class manual_insert extends AppCompatActivity {
     }
 
     public long endDateToMillis() throws ParseException {
-        String endDate = Integer.toString(eYear) + "/" + Integer.toString(eMonth) + "/" + Integer.toString(eDay) + " 00:00:00";
+//        String endDate = Integer.toString(eYear) + "/" + Integer.toString(eMonth) + "/" + Integer.toString(eDay) + " 00:00:00";
+        String endDate = Integer.toString(eYear) + "/" + Integer.toString(eMonth) + "/" + Integer.toString(eDay) + " " + Integer.toString(eHour) + ":" + Integer.toString(eMinute) + ":00";
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date = sdf.parse(endDate);
