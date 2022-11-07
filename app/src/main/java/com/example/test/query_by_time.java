@@ -100,7 +100,8 @@ public class query_by_time extends AppCompatActivity {
 //        this.loadStatistics();
         try {
 //            s3Test();
-            query_s3();
+//            queryS3();
+            dataTiering();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -303,9 +304,6 @@ public class query_by_time extends AppCompatActivity {
 
         ArrayList<App> appsList = new ArrayList<>();
 
-        // sort the applications by time spent in foreground
-//        Collections.sort(usageStatsList, (z1, z2) -> Long.compare(z1.getTotalTimeInForeground(), z2.getTotalTimeInForeground()));
-
         // get total time of apps usage to calculate the usagePercentage for each app
         long totalTime = 0;
 
@@ -445,7 +443,7 @@ public class query_by_time extends AppCompatActivity {
 
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void query_s3() throws Exception {
+    public void queryS3() throws Exception {
         String startTimeInput, endTimeInput;
         startTimeInput = Integer.toString(sYear) + "-" + Integer.toString(sMonth) + "-" + Integer.toString(sDay) + " " + Integer.toString(sHour) + ":" + Integer.toString(sMinute) + ":00";
         endTimeInput = Integer.toString(eYear) + "-" + Integer.toString(eMonth) + "-" + Integer.toString(eDay) + " " + Integer.toString(eHour) + ":" + Integer.toString(eMinute) + ":00";
@@ -479,13 +477,6 @@ public class query_by_time extends AppCompatActivity {
             throw new RuntimeException("Fail to request url! ResponseCode: " + conn.getResponseCode());
         }
 
-//        InputStream inStream = conn.getInputStream();
-////        String jsonStr = IOUtils.toString(inStream, "UTF-8");
-//        String jsonStr = convertStreamToString(inStream);
-//        inStream.close();
-//        Log.d("query result", jsonStr);
-//        return jsonStr;
-
         BufferedReader in = new BufferedReader(new InputStreamReader(
                 conn.getInputStream()));
         String inputLine;
@@ -503,9 +494,181 @@ public class query_by_time extends AppCompatActivity {
         showAppsUsageReport(response.toString());
     }
 
+    public void uploadToS3(String chunk, String file_name) throws Exception {
+        URL url = new URL("http://34.216.172.247/data_tiering");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setUseCaches(false);
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        JSONObject param = new JSONObject();
+        param.put("chunk", chunk);
+        param.put("file_name", file_name);
+
+        Log.d("req body", param.toString());
+
+        conn.connect();
+        OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
+        writer.write(param.toString());
+        writer.flush();
+        writer.close();
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Fail to request url! ResponseCode: " + conn.getResponseCode());
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                conn.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+            Log.d("fastapi input tiering", inputLine);
+        }
+        in.close();
+
+        Log.d("fastapi tiering res", response.toString());
+    }
+
+    public String getOldChunks() throws Exception{
+        URL url = new URL( "http://34.216.172.247:3000/rpc/query_old_chunks");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setUseCaches(false);
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.connect();
+
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Fail to request url! ResponseCode: " + conn.getResponseCode());
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                conn.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+            Log.d("old chunks name line", inputLine);
+        }
+        in.close();
+
+        // print result
+//        System.out.println(response.toString());
+        Log.d("query old chunks res", response.toString());
+
+        return response.toString();
+    }
+
+    public String getChunkTimeRange(String chunk_input) throws Exception{
+        URL url = new URL( "http://34.216.172.247:3000/rpc/get_chunk_time_range");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setUseCaches(false);
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        JSONObject param = new JSONObject();
+        param.put("chunk_input", chunk_input);
+
+        Log.d("req body", param.toString());
+
+        conn.connect();
+        OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
+        writer.write(param.toString());
+        writer.flush();
+        writer.close();
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Fail to request url! ResponseCode: " + conn.getResponseCode());
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                conn.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+            Log.d("chunk time itv line", inputLine);
+        }
+        in.close();
+
+        Log.d("old chunks time itv res", response.toString());
+
+        return response.toString();
+    }
+
+    public String getChunkData(String chunk) throws Exception{
+        URL url = new URL( "http://34.216.172.247:3000/rpc/get_chunk_data");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setUseCaches(false);
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        JSONObject param = new JSONObject();
+        param.put("chunk", chunk);
+
+        Log.d("req body", param.toString());
+
+        conn.connect();
+        OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
+        writer.write(param.toString());
+        writer.flush();
+        writer.close();
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Fail to request url! ResponseCode: " + conn.getResponseCode());
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                conn.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+            Log.d("old chunks data line", inputLine);
+        }
+        in.close();
+
+        Log.d("query old data res", response.toString());
+
+        return response.toString();
+    }
+
+    public void saveChunkToS3(){
+
+    }
+
+    public void processChunkData(String jsonUsageData){ // change the return of get_chunk_data from json string to csv string
+
+    }
+
+    public void dataTiering() throws Exception {
+        String getOldChunks = getOldChunks();
+        JSONArray oldChunks = new JSONArray(getOldChunks);
+
+        for (int i = 0; i < oldChunks.length(); i++) {
+            JSONObject chunkObject = oldChunks.getJSONObject(i);
+            String chunk = chunkObject.getString("chunk");
+            Log.d("chunk name", chunk);
+            String[] splitChunk = chunk.split("\\.");
+            String chunkName = splitChunk[1];
+
+            String getChunkTimeRange = getChunkTimeRange(chunkName);
+            JSONArray chunkTimeRange = new JSONArray(getChunkTimeRange);
+            JSONObject chunkTimeRangeObject = chunkTimeRange.getJSONObject(0);
+            String startTime = chunkTimeRangeObject.getString("start_time");
+            String endTime = chunkTimeRangeObject.getString("end_time");
+            String startDate = startTime.split("T")[0];
+            String endDate = endTime.split("T")[0];
+//            String fileName = startDate + "to" + endDate + ".csv";
+            String fileName = startDate + ".csv";
+
+            uploadToS3(chunk, fileName);
+
+        }
+
+
+    }
 }
 
-
-
-//D/query response: [{"package_name":"com.android.browser","app_name":"Browser","total_duration":3650},  {"package_name":"com.xingin.xhs","app_name":"小红书","total_duration":1549172},  {"package_name":"com.tencent.mm","app_name":"WeChat","total_duration":1284587},  {"package_name":"com.huawei.search","app_name":"AI Search","total_duration":483},  {"package_name":"com.huawei.android.launcher","app_name":"Huawei Home","total_duration":543810},  {"package_name":"com.android.packageinstaller","app_name":"Package Installer","total_duration":2735},  {"package_name":"com.example.test","app_name":"Parent Control","total_duration":359516},  {"package_name":"com.huawei.appmarket","app_name":"AppGallery","total_duration":53480},  {"package_name":"com.android.settings","app_name":"Settings","total_duration":3588},  {"package_name":"com.carsonwah.cubus","app_name":"CU Bus","total_duration":2316},  {"package_name":"com.android.deskclock","app_name":"Clock","total_duration":25695},  {"package_name":"hk.alipay.wallet","app_name":"AlipayHK","total_duration":86890}]
-//        D/fastapi query response: ["2022-09-29 11:54:36,f5f33e3b42bc7b7d,com.huawei.android.launcher,Huawei Home,787\n2022-09-29 11:54:38,f5f33e3b42bc7b7d,com.tencent.mm,WeChat,18\n2022-09-29 11:54:42,f5f33e3b42bc7b7d,com.carsonwah.cubus,CU Bus,17\n2022-09-29 12:00:09,f5f33e3b42bc7b7d,com.huawei.android.launcher,Huawei Home,20241\n2022-09-29 12:01:52,f5f33e3b42bc7b7d,com.huawei.android.launcher,Huawei Home,1203\n2022-09-29 12:01:55,f5f33e3b42bc7b7d,com.tencent.mm,WeChat,13\n2022-09-29 12:01:56,f5f33e3b42bc7b7d,com.huawei.android.launcher,Huawei Home,9050\n2022-09-29 12:02:06,f5f33e3b42bc7b7d,com.microsoft.office.outlook,Outlook,34\n"]
