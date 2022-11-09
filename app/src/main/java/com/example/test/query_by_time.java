@@ -668,7 +668,7 @@ public class query_by_time extends AppCompatActivity {
     public String removeOldChunks() throws Exception{
         URL url = new URL( serverPath + ":3000/rpc/remove_old_chunks");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
+        conn.setRequestMethod("POST");
         conn.setUseCaches(false);
         conn.setDoOutput(true);
         conn.setRequestProperty("Content-Type", "application/json");
@@ -691,7 +691,7 @@ public class query_by_time extends AppCompatActivity {
 
         // print result
 //        System.out.println(response.toString());
-        Log.d("query old chunks res", response.toString());
+        Log.d("remove old chunks res", response.toString());
 
         return response.toString();
     }
@@ -718,7 +718,7 @@ public class query_by_time extends AppCompatActivity {
             String fileName = startDate + ".csv";
 
             uploadToS3(chunk, fileName);
-
+            removeOldChunks();
         }
     }
 
