@@ -104,7 +104,6 @@ public class KeepRunning extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
-//                  EventBus.getDefault().post(new EventCategory(7));
                 System.out.println("99999988");//这是定时所执行的任务
                 try {
                     insertUsageStats(usageStatsManager);
@@ -116,7 +115,7 @@ public class KeepRunning extends Service {
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        int anhour=1*1000;
+        int anhour=5*1000;
         long triggerAtMillis = SystemClock.elapsedRealtime()+anhour;
 
         Intent alarmIntent = new Intent(this,KeepRunning.class);
@@ -167,7 +166,7 @@ public class KeepRunning extends Service {
         long useTime = 0;
         long duration = 0;
         ArrayList<Integer> result = new ArrayList<>();
-        final long INTERVAL = 1000 * 60 *0;
+        final long INTERVAL = 1000 * 60 * 0; // 1 min
         final long end = System.currentTimeMillis();
         final long begin = end - INTERVAL;
         final UsageEvents usageEvents = usageStatsManager.queryEvents(begin, end);
@@ -197,6 +196,7 @@ public class KeepRunning extends Service {
         return packageName;
     }
 
+
     public static int insertData(String path, String useTime, String packagename, String appname, long duration) throws Exception {
         URL url = new URL(path + "/app_usage_data");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -223,6 +223,31 @@ public class KeepRunning extends Service {
         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         System.out.println(in.readLine());
 
+        writer.close();
+
+        return conn.getResponseCode();
+    }
+
+    public static int removeDuplicate(String path) throws Exception {
+        Log.d("removing dup", "123");
+        URL url = new URL(path + "/rpc/remove_duplicate");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setRequestMethod("POST");
+        conn.setUseCaches(false);
+
+        conn.setRequestProperty("Content-Type", "application/json");
+
+        JSONObject param = new JSONObject();
+        param.put("device_id", current_android_id);
+        Log.d("remove dup code", param.toString());
+        conn.connect();
+
+        OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
+        writer.write(param.toString());
+        writer.flush();
+
+        Log.d("remove dup code", Integer.toString(conn.getResponseCode()));
         writer.close();
 
         return conn.getResponseCode();

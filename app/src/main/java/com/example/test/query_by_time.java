@@ -461,14 +461,14 @@ public class query_by_time extends AppCompatActivity {
 
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public String queryS3(String key) throws Exception {
+    public String queryS3(String S3EndTimeInput) throws Exception {
         String startTimeInput, endTimeInput;
         startTimeInput = Integer.toString(sYear) + "-" + String.format("%02d", sMonth) + "-" + String.format("%02d", sDay) + " " + String.format("%02d", sHour) + ":" + String.format("%02d", sMinute) + ":00";
         endTimeInput = Integer.toString(eYear) + "-" + String.format("%02d", eMonth) + "-" + String.format("%02d", eDay) + " " + String.format("%02d", eHour) + ":" + String.format("%02d", eMinute) + ":00";
 //        usageStatHeader.setText("Your Apps usage from " + startTimeDisplay + " to " + endTimeDisplay);
         Log.d("query s3 start time", startTimeInput);
         Log.d("query s3 end time", endTimeInput);
-        URL url = new URL("http://34.216.172.247/s3_query");
+        URL url = new URL("http://34.216.172.247/query_s3_all");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setUseCaches(false);
@@ -481,10 +481,18 @@ public class query_by_time extends AppCompatActivity {
 //        startTimeInput = "2022-09-29 11:54:02";
 //        endTimeInput = "2022-11-29 11:54:02";
 //        key = "test_chunk_2.csv";
-        String sql = "Select * from S3Object s WHERE s._1 >= '" + startTimeInput + "' AND s._1 < '" + endTimeInput + "' AND s._2 = '" + current_android_id + "'";
-        Log.d("s3 sql", sql);
-        param.put("key", key);
-        param.put("sql", sql);
+//        String sql = "Select * from S3Object s WHERE s._1 >= '" + startTimeInput + "' AND s._1 < '" + endTimeInput + "' AND s._2 = '" + current_android_id + "'";
+//        Log.d("s3 sql", sql);
+//        param.put("key", key);
+//        param.put("sql", sql);
+        param.put("s_date_time", startTimeInput);
+        if(S3EndTimeInput.compareTo(endTimeInput) > 0){
+            param.put("e_date_time", endTimeInput);
+        }
+        else{
+            param.put("e_date_time", S3EndTimeInput);
+        }
+        param.put("android_id", current_android_id);
 
         Log.d("req body", param.toString());
 
@@ -517,7 +525,7 @@ public class query_by_time extends AppCompatActivity {
     }
 
     public void uploadToS3(String chunk, String file_name) throws Exception {
-        URL url = new URL("http://34.216.172.247/data_tiering");
+        URL url = new URL(serverPath + "/data_tiering");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setUseCaches(false);
@@ -697,8 +705,10 @@ public class query_by_time extends AppCompatActivity {
     }
 
     public void dataTiering() throws Exception {
+        Log.d("dataTiering", "dataTiering");
         String getOldChunks = getOldChunks();
         JSONArray oldChunks = new JSONArray(getOldChunks);
+        Log.d("dataTiering old chunks", oldChunks.toString());
 
         for (int i = 0; i < oldChunks.length(); i++) {
             JSONObject chunkObject = oldChunks.getJSONObject(i);
@@ -718,8 +728,8 @@ public class query_by_time extends AppCompatActivity {
             String fileName = startDate + ".csv";
 
             uploadToS3(chunk, fileName);
-            removeOldChunks();
         }
+        removeOldChunks();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -802,12 +812,11 @@ public class query_by_time extends AppCompatActivity {
         }
 
         while(true){
-            prevThuTime = prevThuTime.with(TemporalAdjusters.previous(DayOfWeek.THURSDAY));
-
             if(!prevThuTime.isAfter(startDateTime)){
                 break;
             }
             else{
+                prevThuTime = prevThuTime.with(TemporalAdjusters.previous(DayOfWeek.THURSDAY));
                 String key = prevThuTime.format(formatter).substring(0, 10) + ".csv";
                 s3KeyList.add(key);
             }
@@ -823,10 +832,53 @@ public class query_by_time extends AppCompatActivity {
 //
 //    }
 
+    public String getQueryInstruction() throws Exception {
+        String startTimeInput, endTimeInput;
+        startTimeInput = Integer.toString(sYear) + "-" + String.format("%02d", sMonth) + "-" + String.format("%02d", sDay) + " " + String.format("%02d", sHour) + ":" + String.format("%02d", sMinute) + ":00";
+        endTimeInput = Integer.toString(eYear) + "-" + String.format("%02d", eMonth) + "-" + String.format("%02d", eDay) + " " + String.format("%02d", eHour) + ":" + String.format("%02d", eMinute) + ":00";
+
+        URL url = new URL(serverPath + "/query_instruction");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setUseCaches(false);
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        JSONObject param = new JSONObject();
+        param.put("s_date_time", startTimeInput);
+        param.put("e_date_time", endTimeInput);
+        param.put("android_id", current_android_id);
+
+        Log.d("req body", param.toString());
+
+        conn.connect();
+        OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
+        writer.write(param.toString());
+        writer.flush();
+        writer.close();
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Fail to request url! ResponseCode: " + conn.getResponseCode());
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                conn.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+            Log.d("fastapi q instruction", inputLine);
+        }
+        in.close();
+
+        Log.d("fastapi q instruction r", response.toString());
+
+        return response.toString();
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void queryAll() throws Exception {
-        dataTiering();
+//        dataTiering();
 
         String startTimeInput, endTimeInput;
         if(sYear != -1 && sMonth != -1 && sDay != -1 && sHour != -1 && sMinute != -1 && eYear != -1 && eMonth != -1 && eDay != -1 && eHour != -1 && eMinute != -1){
@@ -842,9 +894,26 @@ public class query_by_time extends AppCompatActivity {
             return;
         }
 
-        Pair<Boolean, Boolean> queryObjects = findQueryObjects();
-        boolean queryEC2 = queryObjects.first;
-        boolean queryS3 = queryObjects.second;
+//        Pair<Boolean, Boolean> queryObjects = findQueryObjects();
+        boolean queryEC2 = false;
+        boolean queryS3 = false;
+
+        String queryInstruction = getQueryInstruction();
+        JSONObject queryInstructionObj = new JSONObject(queryInstruction);
+        if(queryInstructionObj.getInt("EC2") == 1){
+            queryEC2 = true;
+        }
+        if(queryInstructionObj.getInt("S3") == 1){
+            queryS3 = true;
+        }
+
+//        JSONArray s3KeyListJsonArray = new JSONArray(queryInstructionObj.getJSONArray("S3KeyList").toString());
+//        List<String> s3KeyList = new ArrayList<>();
+//        for(int i = 0; i < s3KeyListJsonArray.length(); i++){
+//            JSONObject s3KeyObj = s3KeyListJsonArray.getJSONObject(i);
+//            s3KeyList.add(s3KeyObj.getString(Integer.toString(i)));
+//        }
+//        Log.d("fastapi s3 list", s3KeyList.toString());
 
         // only query on EC2
         if(queryEC2 && !queryS3){
@@ -854,8 +923,15 @@ public class query_by_time extends AppCompatActivity {
         }
         // only query on S3
         else if(!queryEC2 && queryS3){
+            LocalDateTime prevThuTime = LocalDateTime.now().with(TemporalAdjusters.previous(DayOfWeek.THURSDAY));
+            prevThuTime = prevThuTime.with(TemporalAdjusters.previous(DayOfWeek.THURSDAY));  // prev of prev, because older than one week is for the end time of an interval
+            prevThuTime = prevThuTime.with(LocalTime.MIDNIGHT);
+            int year = prevThuTime.getYear();
+            int month = prevThuTime.getMonthValue();
+            int day = prevThuTime.getDayOfMonth();
+            String S3EndTimeInput = Integer.toString(year) + "-" + String.format("%02d", month) + "-" + String.format("%02d", day) + " " + "00:00:00";
             JSONArray appUsageArray = new JSONArray();
-            appUsageArray = queryAndMergeS3(appUsageArray, false);
+            appUsageArray = queryAndMergeS3(appUsageArray, false, S3EndTimeInput);
             showAppsUsageReport(appUsageArray);
         }
         // query on EC2 and S3
@@ -867,8 +943,9 @@ public class query_by_time extends AppCompatActivity {
             int month = prevThuTime.getMonthValue();
             int day = prevThuTime.getDayOfMonth();
             startTimeInput = Integer.toString(year) + "-" + String.format("%02d", month) + "-" + String.format("%02d", day) + "T" + "00:00:00";
+            String S3EndTimeInput = Integer.toString(year) + "-" + String.format("%02d", month) + "-" + String.format("%02d", day) + " " + "00:00:00";
             JSONArray appUsageArray = queryEC2(startTimeInput);
-            appUsageArray = queryAndMergeS3(appUsageArray, true);
+            appUsageArray = queryAndMergeS3(appUsageArray, true, S3EndTimeInput);
             showAppsUsageReport(appUsageArray);
         }
 
@@ -876,25 +953,25 @@ public class query_by_time extends AppCompatActivity {
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public JSONArray queryAndMergeS3(JSONArray appUsageArray, Boolean EC2) throws Exception {
+    public JSONArray queryAndMergeS3(JSONArray appUsageArray, Boolean EC2, String S3EndTimeInput) throws Exception {
 
-        List<String> S3KeyList = findS3KeyList(EC2);
-        for(String S3Key: S3KeyList){
-            String curResultS3 = queryS3(S3Key);
+//        List<String> S3KeyList = findS3KeyList(EC2);
+
+            String curResultS3 = queryS3(S3EndTimeInput);
             JSONArray curAppUsageArray = new JSONArray(curResultS3);
             for (int i = 0; i < curAppUsageArray.length(); i++){
                 JSONObject curObject = curAppUsageArray.getJSONObject(i);
-//                Log.d("queryAndMergeS3 cur", curObject.toString());
-//                Log.d("queryAndMergeS3 array", appUsageArray.toString());
+                Log.d("queryAndMergeS3 cur", curObject.toString());
+                Log.d("queryAndMergeS3 array", appUsageArray.toString());
 
                 boolean find = false;
 
                 for(int j = 0; j < appUsageArray.length(); j++){
                     JSONObject existingObject = appUsageArray.getJSONObject(j);
 //                    Log.d("queryAndMergeS3 array", appUsageArray.toString());
-//                    Log.d("queryAndMergeS3 exist", existingObject.toString());
 
-                    if(existingObject.getString("package_name") == curObject.getString("package_name")){
+                    if(existingObject.getString("package_name").equals(curObject.getString("package_name"))){
+                        Log.d("queryAndMergeS3 exist", existingObject.toString());
                         int duration = existingObject.getInt("total_duration");
                         int addDuration = curObject.getInt("total_duration");
                         existingObject.put("total_duration", duration + addDuration);
@@ -909,7 +986,7 @@ public class query_by_time extends AppCompatActivity {
 //                    Log.d("queryAndMergeS3 append", appUsageArray.toString());
                 }
             }
-        }
+
 
         return appUsageArray;
     }
