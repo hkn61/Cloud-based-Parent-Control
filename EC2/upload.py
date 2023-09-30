@@ -52,8 +52,8 @@ def upload_to_s3(old_chunk, file_name):
     print(chunk_data_csv)
 
     s3 = boto3.client('s3',
-        aws_access_key_id='AKIAQ5HCDRDTFKG2RVYM',
-        aws_secret_access_key='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',
+        aws_access_key_id='',
+        aws_secret_access_key='',
         region_name='us-west-2')
     url_s3 = s3.generate_presigned_url('put_object', Params={'Bucket': 'fyp-time-series-data', 'Key': file_name})
     print(url_s3)
