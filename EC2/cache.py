@@ -25,8 +25,8 @@ def get_records_sum():
 
 def get_volumes_num():
     ec2resource = boto3.resource('ec2', region_name='us-west-2',
-                    aws_access_key_id='AKIAQ5HCDRDTFKG2RVYM',
-                    aws_secret_access_key='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')
+                    aws_access_key_id='',
+                    aws_secret_access_key='')
     volumes = ec2resource.volumes.all()
     volume_list = []
     for volume in volumes:
@@ -75,11 +75,11 @@ def detach_and_delete_volume():
     # Using Boto3 resource to get list of disks
 
     ec2_client= boto3.client('ec2', region_name=region_name,
-                    aws_access_key_id='AKIAQ5HCDRDTFKG2RVYM',
-                    aws_secret_access_key='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')
+                    aws_access_key_id='',
+                    aws_secret_access_key='')
     ec2resource = boto3.resource('ec2', region_name='us-west-2',
-                    aws_access_key_id='AKIAQ5HCDRDTFKG2RVYM',
-                    aws_secret_access_key='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')
+                    aws_access_key_id='',
+                    aws_secret_access_key='')
     Instance = ec2resource.Instance(InstanceID)
 
     volumes = ec2resource.volumes.all()
