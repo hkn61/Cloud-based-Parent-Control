@@ -61,7 +61,7 @@ public class manual_insert extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        String path = "http://34.216.172.247:3000";
+        String path = "http://<IP_address>:3000";
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         confirmInsert.setOnClickListener(view -> {
             try {
@@ -176,14 +176,12 @@ public class manual_insert extends AppCompatActivity {
 
     public static String stampToDate(long time) {
         Date date = new Date(time);
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss "); // the format of your date
-        //sdf.setTimeZone(TimeZone.getTimeZone("GMT-4"));
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ");
 
         return sdf.format(date);
     }
 
     public long beginDateToMillis() throws ParseException {
-//        String beginDate = Integer.toString(sYear) + "/" + Integer.toString(sMonth) + "/" + Integer.toString(sDay) + " 00:00:00";
         String beginDate = Integer.toString(sYear) + "/" + Integer.toString(sMonth) + "/" + Integer.toString(sDay) + " " + Integer.toString(sHour) + ":" + Integer.toString(sMinute) + ":00";
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -194,7 +192,6 @@ public class manual_insert extends AppCompatActivity {
     }
 
     public long endDateToMillis() throws ParseException {
-//        String endDate = Integer.toString(eYear) + "/" + Integer.toString(eMonth) + "/" + Integer.toString(eDay) + " 00:00:00";
         String endDate = Integer.toString(eYear) + "/" + Integer.toString(eMonth) + "/" + Integer.toString(eDay) + " " + Integer.toString(eHour) + ":" + Integer.toString(eMinute) + ":00";
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -215,7 +212,6 @@ public class manual_insert extends AppCompatActivity {
         Log.d("begin date", Long.toString(begin));
         Log.d("end date", Long.toString(end));
         final UsageEvents usageEvents = usageStatsManager.queryEvents(begin, end);
-        Log.d("here manual insert", String.valueOf(usageEvents));
         while (usageEvents.hasNextEvent()) {
             UsageEvents.Event curEvent = new UsageEvents.Event();
             usageEvents.getNextEvent(curEvent);
@@ -230,7 +226,6 @@ public class manual_insert extends AppCompatActivity {
                 counter++;
                 String appName = getAppName(context, pname);
                 duration = curEvent.getTimeStamp() - useTime;
-                //result.add(new AppUsageInfoWrapper())
                 Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: " + String.valueOf(useTime) + ", duration: " + duration);
                 int res = insertData(path, stampToDate(useTime), pname, appName, duration);
                 Log.d("insert response code", String.valueOf(res));
@@ -275,7 +270,6 @@ public class manual_insert extends AppCompatActivity {
     }
 
     public static int removeDuplicate(String path) throws Exception {
-        Log.d("removing dup", "123");
         URL url = new URL(path + "/rpc/remove_duplicate");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(5000);
@@ -286,14 +280,13 @@ public class manual_insert extends AppCompatActivity {
 
         JSONObject param = new JSONObject();
         param.put("device_id", current_android_id);
-        Log.d("remove dup code", param.toString());
         conn.connect();
 
         OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
         writer.write(param.toString());
         writer.flush();
 
-        Log.d("remove dup code", Integer.toString(conn.getResponseCode()));
+        Log.d("response code", Integer.toString(conn.getResponseCode()));
         writer.close();
 
         return conn.getResponseCode();

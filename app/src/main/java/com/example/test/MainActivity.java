@@ -64,18 +64,6 @@ public class MainActivity extends AppCompatActivity {
         current_android_id = getDeviceId((context));
         Log.d("current user", current_android_id);
 
-
-        // s3
-//        try {
-//            Amplify.addPlugin(new AWSDataStorePlugin());
-//            Amplify.configure(getApplicationContext());
-//
-//            Log.i("Tutorial", "Initialized Amplify");
-//        } catch (AmplifyException e) {
-//            Log.e("Tutorial", "Could not initialize Amplify", e);
-//        }
-
-
         try {
             PackageManager packageManager = context.getPackageManager();
             ApplicationInfo applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
@@ -88,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (PackageManager.NameNotFoundException e) {
 
         }
-//        startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
         UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
 
         // fix android.os.NetworkOnMainThreadException
@@ -97,39 +84,6 @@ public class MainActivity extends AppCompatActivity {
             StrictMode.setThreadPolicy(policy);
         }
 
-
-
-//        // (2) 使用handler处理接收到的消息
-//        Handler mHandler = new Handler(){
-//            @Override
-//            public void handleMessage(Message msg) {
-//                if(msg.what == 0){
-//                    try {
-//                        insertUsageStats(usageStatsManager);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        };
-//
-//        timer=new Timer();
-//        timer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                // (1) 使用handler发送消息
-//                Message message=new Message();
-//                message.what=0;
-//                mHandler.sendMessage(message);
-//            }
-//        },0,1000 * 5);//每隔一秒使用handler发送一下消息,也就是每隔一秒执行一次,一直重复执行
-//
-
-//        try {
-//            insertUsageStats(usageStatsManager);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
 
@@ -147,13 +101,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void goToManualInsert(View view) {
-        // Do something in response to button
         Intent i = new Intent(this, manual_insert.class);
         startActivity(i);
     }
 
     public void queryByTime(View view) {
-        // Do something in response to button
         Intent i = new Intent(this, query_by_time.class);
         startActivity(i);
     }
@@ -172,30 +124,10 @@ public class MainActivity extends AppCompatActivity {
 
     public static String stampToDate(long time) {
         Date date = new Date(time);
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss "); // the format of your date
-        //sdf.setTimeZone(TimeZone.getTimeZone("GMT-4"));
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ");
 
         return sdf.format(date);
     }
-//
-//    private boolean checkUsageStatsPermission() {
-//        AppOpsManager appOpsManager = getSystemService(AppCompatActivity.APP_OPS_SERVICE)
-//        boolean mode;
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            appOpsManager.unsafeCheckOpNoThrow(
-//                    "android:get_usage_stats",
-//                    Process.myUid(), packageName
-//            );
-//            mode = true;
-//        }
-//        else {
-//            appOpsManager.checkOpNoThrow(
-//                    "android:get_usage_stats",
-//                    Process.myUid(), packageName
-//            )
-//        }
-//        return mode == AppOpsManager.MODE_ALLOWED
-//    }
 
     public String insertUsageStats(UsageStatsManager usageStatsManager) throws Exception {
         String packageName = null;
@@ -224,20 +156,11 @@ public class MainActivity extends AppCompatActivity {
                 duration = curEvent.getTimeStamp() - useTime;
                 //result.add(new AppUsageInfoWrapper())
                 Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: " + String.valueOf(useTime) + ", duration: " + duration);
-                int res = insertData("http://34.216.172.247:3000", stampToDate(useTime), pname, appName, duration);
+                int res = insertData("http://<IP_address>:3000", stampToDate(useTime), pname, appName, duration);
                 Log.d("insert response code", String.valueOf(res));
             }
 
         }
-
-//        Calendar calendar=Calendar.getInstance();
-//        long endt = calendar.getTimeInMillis();//结束时间
-//        calendar.add(Calendar.DAY_OF_MONTH, -1);//时间间隔为一个月
-//        long statt = calendar.getTimeInMillis();//开始时间
-//        UsageStatsManager usageStatsManager2=(UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
-//        //获取一个月内的信息
-//        List<UsageStats> queryUsageStats = usageStatsManager2.queryUsageStats(UsageStatsManager.INTERVAL_MONTHLY,statt-1000000,endt);
-//        Log.d("list of usage stats: ", String.valueOf(queryUsageStats));
 
         Calendar beginCal = Calendar.getInstance();
         beginCal.add(Calendar.HOUR_OF_DAY, -1);
@@ -258,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-        Log.d("hhhhhhhhh", sb.toString());
 
         return packageName;
     }

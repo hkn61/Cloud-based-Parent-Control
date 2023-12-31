@@ -14,7 +14,6 @@ public class auto_insert extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        startService(new Intent(this, KeepInsertion.class));
         setContentView(R.layout.activity_auto_insert);
     }
 }

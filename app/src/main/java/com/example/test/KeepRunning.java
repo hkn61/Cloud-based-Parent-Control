@@ -52,17 +52,6 @@ public class KeepRunning extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
-//
-//    @Override
-//    public void onCreate() {
-//        super.onCreate();
-//        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-//        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-//                "MyApp::MyWakelockTag");
-//        wakeLock.acquire();
-//    /*Rest of the
-//      code goes here*/
-//    }
 
     private void startForeground() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -104,7 +93,7 @@ public class KeepRunning extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                System.out.println("99999988");//这是定时所执行的任务
+                System.out.println("running");
                 try {
                     insertUsageStats(usageStatsManager);
                 } catch (Exception e) {
@@ -154,8 +143,7 @@ public class KeepRunning extends Service {
 
     public static String stampToDate(long time) {
         Date date = new Date(time);
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss "); // the format of your date
-        //sdf.setTimeZone(TimeZone.getTimeZone("GMT-4"));
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ");
 
         return sdf.format(date);
     }
@@ -185,9 +173,8 @@ public class KeepRunning extends Service {
                 counter++;
                 String appName = getAppName(context, pname);
                 duration = curEvent.getTimeStamp() - useTime;
-                //result.add(new AppUsageInfoWrapper())
                 Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: " + String.valueOf(useTime) + ", duration: " + duration);
-                int res = insertData("http://34.216.172.247:3000", stampToDate(useTime), pname, appName, duration);
+                int res = insertData("http://<IP_address>:3000", stampToDate(useTime), pname, appName, duration);
                 Log.d("insert response code", String.valueOf(res));
             }
 
@@ -240,14 +227,13 @@ public class KeepRunning extends Service {
 
         JSONObject param = new JSONObject();
         param.put("device_id", current_android_id);
-        Log.d("remove dup code", param.toString());
         conn.connect();
 
         OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
         writer.write(param.toString());
         writer.flush();
 
-        Log.d("remove dup code", Integer.toString(conn.getResponseCode()));
+        Log.d("response code", Integer.toString(conn.getResponseCode()));
         writer.close();
 
         return conn.getResponseCode();
