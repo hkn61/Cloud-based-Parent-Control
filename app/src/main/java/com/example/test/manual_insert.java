@@ -37,7 +37,8 @@ import java.util.List;
 
 public class manual_insert extends AppCompatActivity {
     EditText startDate, startTime, endDate, endTime;
-    public int sYear = -1, sMonth = -1, sDay = -1, sHour = -1, sMinute = -1, eYear = -1, eMonth = -1, eDay = -1, eHour = -1, eMinute = -1;
+    public int sYear = -1, sMonth = -1, sDay = -1, sHour = -1, sMinute = -1, eYear = -1, eMonth = -1, eDay = -1,
+            eHour = -1, eMinute = -1;
     Button confirmInsert;
     public static Context context;
     public static String current_android_id;
@@ -88,7 +89,7 @@ public class manual_insert extends AppCompatActivity {
                 sMonth = monthOfYear + 1;
                 sDay = dayOfMonth;
             }
-            }, sYear, sMonth, sDay);
+        }, sYear, sMonth, sDay);
 
         datePickerDialog.show();
     }
@@ -131,7 +132,7 @@ public class manual_insert extends AppCompatActivity {
                 eMonth = monthOfYear + 1;
                 eDay = dayOfMonth;
             }
-            }, eYear, eMonth, eDay);
+        }, eYear, eMonth, eDay);
 
         datePickerDialog.show();
     }
@@ -162,14 +163,16 @@ public class manual_insert extends AppCompatActivity {
         return id;
     }
 
-    public static String getAppName(Context context, String pname){
+    public static String getAppName(Context context, String pname) {
         ApplicationInfo appInfo;
         try {
-            appInfo = context.getPackageManager().getApplicationInfo( pname, 0);
+            appInfo = context.getPackageManager().getApplicationInfo(pname, 0);
         } catch (final PackageManager.NameNotFoundException e) {
             appInfo = null;
         }
-        final String applicationName = (String) (appInfo != null ? context.getPackageManager().getApplicationLabel(appInfo) : "(unknown)");
+        final String applicationName = (String) (appInfo != null
+                ? context.getPackageManager().getApplicationLabel(appInfo)
+                : "(unknown)");
 
         return applicationName;
     }
@@ -182,7 +185,8 @@ public class manual_insert extends AppCompatActivity {
     }
 
     public long beginDateToMillis() throws ParseException {
-        String beginDate = Integer.toString(sYear) + "/" + Integer.toString(sMonth) + "/" + Integer.toString(sDay) + " " + Integer.toString(sHour) + ":" + Integer.toString(sMinute) + ":00";
+        String beginDate = Integer.toString(sYear) + "/" + Integer.toString(sMonth) + "/" + Integer.toString(sDay) + " "
+                + Integer.toString(sHour) + ":" + Integer.toString(sMinute) + ":00";
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date = sdf.parse(beginDate);
@@ -192,7 +196,8 @@ public class manual_insert extends AppCompatActivity {
     }
 
     public long endDateToMillis() throws ParseException {
-        String endDate = Integer.toString(eYear) + "/" + Integer.toString(eMonth) + "/" + Integer.toString(eDay) + " " + Integer.toString(eHour) + ":" + Integer.toString(eMinute) + ":00";
+        String endDate = Integer.toString(eYear) + "/" + Integer.toString(eMonth) + "/" + Integer.toString(eDay) + " "
+                + Integer.toString(eHour) + ":" + Integer.toString(eMinute) + ":00";
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date = sdf.parse(endDate);
@@ -218,15 +223,16 @@ public class manual_insert extends AppCompatActivity {
             String pname = curEvent.getPackageName();
             Log.d("activity here: ", "[" + pname + "]" + " app name: " + getAppName(context, pname));
 
-            if(curEvent.getEventType() == UsageEvents.Event.ACTIVITY_RESUMED){
+            if (curEvent.getEventType() == UsageEvents.Event.ACTIVITY_RESUMED) {
                 counter++;
                 useTime = curEvent.getTimeStamp();
             }
-            if(curEvent.getEventType() == UsageEvents.Event.ACTIVITY_PAUSED){
+            if (curEvent.getEventType() == UsageEvents.Event.ACTIVITY_PAUSED) {
                 counter++;
                 String appName = getAppName(context, pname);
                 duration = curEvent.getTimeStamp() - useTime;
-                Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: " + String.valueOf(useTime) + ", duration: " + duration);
+                Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: "
+                        + String.valueOf(useTime) + ", duration: " + duration);
                 int res = insertData(path, stampToDate(useTime), pname, appName, duration);
                 Log.d("insert response code", String.valueOf(res));
             }
@@ -238,7 +244,8 @@ public class manual_insert extends AppCompatActivity {
         return packageName;
     }
 
-    public static int insertData(String path, String useTime, String packagename, String appname, long duration) throws Exception {
+    public static int insertData(String path, String useTime, String packagename, String appname, long duration)
+            throws Exception {
         URL url = new URL(path + "/app_usage_data");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(5000);
@@ -260,7 +267,9 @@ public class manual_insert extends AppCompatActivity {
         writer.write(param.toString());
         writer.flush();
 
-        //The server isn't waiting for any data from the client, and when the server exits the connection will be closed. So add a ins.readLine() to the server code:
+        // The server isn't waiting for any data from the client, and when the server
+        // exits the connection will be closed. So add a ins.readLine() to the server
+        // code:
         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         System.out.println(in.readLine());
 

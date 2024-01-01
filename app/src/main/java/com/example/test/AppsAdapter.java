@@ -24,16 +24,16 @@ public class AppsAdapter extends ArrayAdapter<App> {
 
         // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.activity_query_result_by_time, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.activity_query_result_by_time, parent,
+                    false);
         }
 
         // Lookup view for data population
         TextView app_name_tv = convertView.findViewById(R.id.app_name_tv);
-        TextView usage_duration_tv =  convertView.findViewById(R.id.usage_duration_tv);
+        TextView usage_duration_tv = convertView.findViewById(R.id.usage_duration_tv);
         TextView usage_perc_tv = convertView.findViewById(R.id.usage_perc_tv);
-        ImageView icon_img =  convertView.findViewById(R.id.icon_img);
+        ImageView icon_img = convertView.findViewById(R.id.icon_img);
         ProgressBar progressBar = convertView.findViewById(R.id.progressBar);
-
 
         // Populate the data into the template view using the data object
         app_name_tv.setText(usageStats.appName);

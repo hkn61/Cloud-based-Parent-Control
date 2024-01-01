@@ -63,14 +63,12 @@ public class KeepRunning extends Service {
             NotificationChannel channel1 = new NotificationChannel(
                     NOTIF_CHANNEL_ID,
                     "Channel 1",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
+                    NotificationManager.IMPORTANCE_HIGH);
             channel1.setDescription("This is channel 1");
 
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel1);
         }
-
 
         startForeground(NOTIF_ID, new NotificationCompat.Builder(this,
                 NOTIF_CHANNEL_ID) // don't forget create a notification channel first
@@ -104,20 +102,21 @@ public class KeepRunning extends Service {
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        int anhour=5*1000;
-        long triggerAtMillis = SystemClock.elapsedRealtime()+anhour;
+        int anhour = 5 * 1000;
+        long triggerAtMillis = SystemClock.elapsedRealtime() + anhour;
 
-        Intent alarmIntent = new Intent(this,KeepRunning.class);
+        Intent alarmIntent = new Intent(this, KeepRunning.class);
 
         PendingIntent pendingIntent = PendingIntent.getService(this, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         alarmManager.cancel(pendingIntent);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {// 6.0
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pendingIntent);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {//  4.4
-            alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP,triggerAtMillis, pendingIntent);
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis,
+                    pendingIntent);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {// 4.4
+            alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pendingIntent);
         } else {
-            alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,triggerAtMillis, pendingIntent);
+            alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pendingIntent);
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -129,14 +128,16 @@ public class KeepRunning extends Service {
         return id;
     }
 
-    public static String getAppName(Context context, String pname){
+    public static String getAppName(Context context, String pname) {
         ApplicationInfo appInfo;
         try {
-            appInfo = context.getPackageManager().getApplicationInfo( pname, 0);
+            appInfo = context.getPackageManager().getApplicationInfo(pname, 0);
         } catch (final PackageManager.NameNotFoundException e) {
             appInfo = null;
         }
-        final String applicationName = (String) (appInfo != null ? context.getPackageManager().getApplicationLabel(appInfo) : "(unknown)");
+        final String applicationName = (String) (appInfo != null
+                ? context.getPackageManager().getApplicationLabel(appInfo)
+                : "(unknown)");
 
         return applicationName;
     }
@@ -165,15 +166,16 @@ public class KeepRunning extends Service {
             String pname = curEvent.getPackageName();
             Log.d("activity here: ", "[" + pname + "]" + " app name: " + getAppName(context, pname));
 
-            if(curEvent.getEventType() == UsageEvents.Event.ACTIVITY_RESUMED){
+            if (curEvent.getEventType() == UsageEvents.Event.ACTIVITY_RESUMED) {
                 counter++;
                 useTime = curEvent.getTimeStamp();
             }
-            if(curEvent.getEventType() == UsageEvents.Event.ACTIVITY_PAUSED){
+            if (curEvent.getEventType() == UsageEvents.Event.ACTIVITY_PAUSED) {
                 counter++;
                 String appName = getAppName(context, pname);
                 duration = curEvent.getTimeStamp() - useTime;
-                Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: " + String.valueOf(useTime) + ", duration: " + duration);
+                Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: "
+                        + String.valueOf(useTime) + ", duration: " + duration);
                 int res = insertData("http://<IP_address>:3000", stampToDate(useTime), pname, appName, duration);
                 Log.d("insert response code", String.valueOf(res));
             }
@@ -183,8 +185,8 @@ public class KeepRunning extends Service {
         return packageName;
     }
 
-
-    public static int insertData(String path, String useTime, String packagename, String appname, long duration) throws Exception {
+    public static int insertData(String path, String useTime, String packagename, String appname, long duration)
+            throws Exception {
         URL url = new URL(path + "/app_usage_data");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(5000);
@@ -206,7 +208,9 @@ public class KeepRunning extends Service {
         writer.write(param.toString());
         writer.flush();
 
-        //The server isn't waiting for any data from the client, and when the server exits the connection will be closed. So add a ins.readLine() to the server code:
+        // The server isn't waiting for any data from the client, and when the server
+        // exits the connection will be closed. So add a ins.readLine() to the server
+        // code:
         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         System.out.println(in.readLine());
 

@@ -68,8 +68,9 @@ public class MainActivity extends AppCompatActivity {
             PackageManager packageManager = context.getPackageManager();
             ApplicationInfo applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
             AppOpsManager appOpsManager = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
-            int mode = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, applicationInfo.uid, applicationInfo.packageName);
-            if (mode != AppOpsManager.MODE_ALLOWED){
+            int mode = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, applicationInfo.uid,
+                    applicationInfo.packageName);
+            if (mode != AppOpsManager.MODE_ALLOWED) {
                 startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
             }
 
@@ -85,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
 
     public static String getDeviceId(Context context) {
         String id = Settings.Secure.getString(context.getContentResolver(),
@@ -110,14 +110,16 @@ public class MainActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    public static String getAppName(Context context, String pname){
+    public static String getAppName(Context context, String pname) {
         ApplicationInfo appInfo;
         try {
-            appInfo = context.getPackageManager().getApplicationInfo( pname, 0);
+            appInfo = context.getPackageManager().getApplicationInfo(pname, 0);
         } catch (final PackageManager.NameNotFoundException e) {
             appInfo = null;
         }
-        final String applicationName = (String) (appInfo != null ? context.getPackageManager().getApplicationLabel(appInfo) : "(unknown)");
+        final String applicationName = (String) (appInfo != null
+                ? context.getPackageManager().getApplicationLabel(appInfo)
+                : "(unknown)");
 
         return applicationName;
     }
@@ -135,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         long useTime = 0;
         long duration = 0;
         ArrayList<Integer> result = new ArrayList<>();
-        final long INTERVAL = 1000 * 60 * 60 * 72 *0;
+        final long INTERVAL = 1000 * 60 * 60 * 72 * 0;
         final long end = System.currentTimeMillis();
         final long begin = end - INTERVAL;
         final UsageEvents usageEvents = usageStatsManager.queryEvents(begin, end);
@@ -146,16 +148,17 @@ public class MainActivity extends AppCompatActivity {
             String pname = curEvent.getPackageName();
             Log.d("activity here: ", "[" + pname + "]" + " app name: " + getAppName(context, pname));
 
-            if(curEvent.getEventType() == UsageEvents.Event.ACTIVITY_RESUMED){
+            if (curEvent.getEventType() == UsageEvents.Event.ACTIVITY_RESUMED) {
                 counter++;
                 useTime = curEvent.getTimeStamp();
             }
-            if(curEvent.getEventType() == UsageEvents.Event.ACTIVITY_PAUSED){
+            if (curEvent.getEventType() == UsageEvents.Event.ACTIVITY_PAUSED) {
                 counter++;
                 String appName = getAppName(context, pname);
                 duration = curEvent.getTimeStamp() - useTime;
-                //result.add(new AppUsageInfoWrapper())
-                Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: " + String.valueOf(useTime) + ", duration: " + duration);
+                // result.add(new AppUsageInfoWrapper())
+                Log.d("activity paused: ", "[" + appName + "]" + stampToDate(useTime) + "Use time: "
+                        + String.valueOf(useTime) + ", duration: " + duration);
                 int res = insertData("http://<IP_address>:3000", stampToDate(useTime), pname, appName, duration);
                 Log.d("insert response code", String.valueOf(res));
             }
@@ -165,17 +168,20 @@ public class MainActivity extends AppCompatActivity {
         Calendar beginCal = Calendar.getInstance();
         beginCal.add(Calendar.HOUR_OF_DAY, -1);
         Calendar endCal = Calendar.getInstance();
-        UsageStatsManager manager = (UsageStatsManager)getApplicationContext().getSystemService(USAGE_STATS_SERVICE);
-        List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, beginCal.getTimeInMillis(), endCal.getTimeInMillis());
+        UsageStatsManager manager = (UsageStatsManager) getApplicationContext().getSystemService(USAGE_STATS_SERVICE);
+        List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, beginCal.getTimeInMillis(),
+                endCal.getTimeInMillis());
         StringBuilder sb = new StringBuilder();
-        for(UsageStats us:stats){
+        for (UsageStats us : stats) {
             try {
                 PackageManager pm = getApplicationContext().getPackageManager();
-                ApplicationInfo applicationInfo = pm.getApplicationInfo(us.getPackageName(),PackageManager.GET_META_DATA);
-                if((applicationInfo.flags&applicationInfo.FLAG_SYSTEM) <= 0){
+                ApplicationInfo applicationInfo = pm.getApplicationInfo(us.getPackageName(),
+                        PackageManager.GET_META_DATA);
+                if ((applicationInfo.flags & applicationInfo.FLAG_SYSTEM) <= 0) {
                     SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-                    String t=format.format(new Date(us.getLastTimeUsed()));
-                    sb.append(pm.getApplicationLabel(applicationInfo) + "\t" + t + "\t" + us.getTotalTimeInForeground() + "\n");
+                    String t = format.format(new Date(us.getLastTimeUsed()));
+                    sb.append(pm.getApplicationLabel(applicationInfo) + "\t" + t + "\t" + us.getTotalTimeInForeground()
+                            + "\n");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -185,7 +191,8 @@ public class MainActivity extends AppCompatActivity {
         return packageName;
     }
 
-    public static int insertData(String path, String useTime, String packagename, String appname, long duration) throws Exception {
+    public static int insertData(String path, String useTime, String packagename, String appname, long duration)
+            throws Exception {
         URL url = new URL(path + "/app_usage_data");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(5000);
@@ -207,7 +214,9 @@ public class MainActivity extends AppCompatActivity {
         writer.write(param.toString());
         writer.flush();
 
-        //The server isn't waiting for any data from the client, and when the server exits the connection will be closed. So add a ins.readLine() to the server code:
+        // The server isn't waiting for any data from the client, and when the server
+        // exits the connection will be closed. So add a ins.readLine() to the server
+        // code:
         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         System.out.println(in.readLine());
 
@@ -215,7 +224,5 @@ public class MainActivity extends AppCompatActivity {
 
         return conn.getResponseCode();
     }
-
-
 
 }
